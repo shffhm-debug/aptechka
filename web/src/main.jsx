@@ -1,0 +1,17 @@
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { HashRouter } from 'react-router-dom'
+import '@fontsource-variable/golos-text'
+import './index.css'
+import App from './App.jsx'
+import { StoreProvider } from './store.jsx'
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <HashRouter>
+      <StoreProvider>
+        <App />
+      </StoreProvider>
+    </HashRouter>
+  </StrictMode>,
+)

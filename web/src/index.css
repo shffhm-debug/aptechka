@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+/* ---------- токены: светлая тема ---------- */
+:root {
+  --bg: #F3F6F4;
+  --surface: #FFFFFF;
+  --surface-2: #E9EFEB;
+  --ink: #15221C;
+  --muted: #5E6E67;
+  --line: #D9E2DD;
+  --accent: #0E8A6D;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #DDF1EA;
+  --danger: #C8402F;
+  --danger-soft: #FBE4E0;
+  --warn: #B9770E;
+  --warn-soft: #FBEFD9;
+  --ok: #2E7D4F;
+  --ok-soft: #DDF1E4;
+
+  --cat-fever-bg: #FBE4E0;   --cat-fever-fg: #B63A2A;
+  --cat-cold-bg: #DDEBF9;    --cat-cold-fg: #2662A8;
+  --cat-stomach-bg: #FBEFD9; --cat-stomach-fg: #A0660A;
+  --cat-allergy-bg: #EBE3F8; --cat-allergy-fg: #6B45B0;
+  --cat-skin-bg: #FCE3EC;    --cat-skin-fg: #B23A67;
+  --cat-heart-bg: #F9E0E4;   --cat-heart-fg: #B1233F;
+  --cat-kids-bg: #FBF3CF;    --cat-kids-fg: #8A6A00;
+  --cat-other-bg: #E6EBE8;   --cat-other-fg: #4E5E57;
+
+  color-scheme: light;
+}
+
+/* ---------- токены: тёмная тема (по системе) ---------- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0F1613;
+    --surface: #18221D;
+    --surface-2: #22302A;
+    --ink: #E8EFEA;
+    --muted: #93A39B;
+    --line: #2C3B34;
+    --accent: #3DC79F;
+    --accent-ink: #06261C;
+    --accent-soft: #173A31;
+    --danger: #F07C6C;
+    --danger-soft: #43221D;
+    --warn: #E5A43B;
+    --warn-soft: #3D2E14;
+    --ok: #5DC98A;
+    --ok-soft: #1B3A29;
+
+    --cat-fever-bg: #3E211C;   --cat-fever-fg: #F3907F;
+    --cat-cold-bg: #1B2C40;    --cat-cold-fg: #7FB2EE;
+    --cat-stomach-bg: #3B2C12; --cat-stomach-fg: #EDB458;
+    --cat-allergy-bg: #2B2140; --cat-allergy-fg: #B69AEC;
+    --cat-skin-bg: #3E1F2B;    --cat-skin-fg: #F08BB0;
+    --cat-heart-bg: #3E1C23;   --cat-heart-fg: #F07A90;
+    --cat-kids-bg: #3A3210;    --cat-kids-fg: #E9CB4B;
+    --cat-other-bg: #263029;   --cat-other-fg: #A7B6AE;
+
+    color-scheme: dark;
+  }
+}
+
+/* ---------- Tailwind: имена классов → переменные ---------- */
+@theme inline {
+  --font-sans: 'Golos Text Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --color-page: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+
+  --radius-card: 20px;
+  --radius-field: 14px;
+}
+
+/* ---------- база (в @layer base, чтобы утилиты Tailwind её перебивали) ---------- */
+@layer base {
+  html {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  input, textarea, select, button { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  *:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  input:focus-visible, textarea:focus-visible, select:focus-visible { outline-offset: 0; }
+  input[type="month"] { min-height: 52px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
+}
+
+/* safe-area для нижней навигации (Android с жестами, iOS) */
+.pb-safe { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+.pt-safe { padding-top: env(safe-area-inset-top); }
+
+/* скрыть скроллбар у горизонтальных лент чипов */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ввод/вывод без «дрожания» на свайпе */
+.swipe-row { touch-action: pan-y; }

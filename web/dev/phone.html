@@ -1,0 +1,63 @@
+<!doctype html>
+<!--
+  Превью на телефонной ширине (только для разработки, в сборку не попадает).
+  http://localhost:5179/dev/phone.html?routes=/,/list,/add&light=1&w=390&h=720
+-->
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Аптечка — превью 390px</title>
+  <style>
+    html, body { margin: 0; background: #6b6b6b; font: 13px system-ui, sans-serif; color: #fff; overflow: hidden; height: 100%; }
+    #row { display: flex; gap: 20px; padding: 12px; align-items: flex-start; }
+    .ph { display: flex; flex-direction: column; gap: 6px; }
+    .ph span { opacity: .8; padding-left: 4px; }
+    iframe { border: 0; border-radius: 20px; background: #fff; display: block; }
+  </style>
+</head>
+<body>
+  <div id="row"></div>
+  <script>
+    const q = new URLSearchParams(location.search)
+    const routes = (q.get('routes') || '/,/list,/add').split(',')
+    const light = q.get('light') === '1'
+    const w = Number(q.get('w') || 390)
+    const h = Number(q.get('h') || 720)
+    if (q.get('reseed') === '1') localStorage.removeItem('aptechka.demo.items.v1')
+    if (q.get('demo') === '1') localStorage.setItem('aptechka.settings.v1', JSON.stringify({ url: '', token: '', demo: true }))
+
+    // светлая тема поверх системной тёмной: те же токены, что в src/index.css (:root)
+    const LIGHT = `@media (prefers-color-scheme: dark) { :root {
+      --bg:#F3F6F4; --surface:#FFFFFF; --surface-2:#E9EFEB; --ink:#15221C; --muted:#5E6E67; --line:#D9E2DD;
+      --accent:#0E8A6D; --accent-ink:#FFFFFF; --accent-soft:#DDF1EA; --danger:#C8402F; --danger-soft:#FBE4E0;
+      --warn:#B9770E; --warn-soft:#FBEFD9; --ok:#2E7D4F; --ok-soft:#DDF1E4;
+      --cat-fever-bg:#FBE4E0; --cat-fever-fg:#B63A2A; --cat-cold-bg:#DDEBF9; --cat-cold-fg:#2662A8;
+      --cat-stomach-bg:#FBEFD9; --cat-stomach-fg:#A0660A; --cat-allergy-bg:#EBE3F8; --cat-allergy-fg:#6B45B0;
+      --cat-skin-bg:#FCE3EC; --cat-skin-fg:#B23A67; --cat-heart-bg:#F9E0E4; --cat-heart-fg:#B1233F;
+      --cat-kids-bg:#FBF3CF; --cat-kids-fg:#8A6A00; --cat-other-bg:#E6EBE8; --cat-other-fg:#4E5E57;
+      color-scheme: light;
+    } }`
+
+    const row = document.getElementById('row')
+    for (const r of routes) {
+      const wrap = document.createElement('div')
+      wrap.className = 'ph'
+      const label = document.createElement('span')
+      label.textContent = r + (light ? ' · light' : ' · dark')
+      const f = document.createElement('iframe')
+      f.width = w; f.height = h
+      f.src = '/#' + r
+      f.addEventListener('load', () => {
+        if (!light) return
+        const s = f.contentDocument.createElement('style')
+        s.textContent = LIGHT
+        f.contentDocument.head.appendChild(s)
+      })
+      wrap.append(label, f)
+      row.append(wrap)
+    }
+    // доступ к iframe из консоли: ph(0).document / ph(0).localStorage
+    window.ph = (i) => document.querySelectorAll('iframe')[i].contentWindow
+  </script>
+</body>
+</html>
