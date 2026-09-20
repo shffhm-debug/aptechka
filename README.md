@@ -90,6 +90,23 @@ Workers & Pages → Create → Pages → подключить репозитор
 
 Список кэшируется: без интернета приложение откроется и покажет последнее состояние. Добавление, правки и помощник требуют сети.
 
+### Android-оболочка (APK)
+
+Кроме PWA есть нативная оболочка на Capacitor (`web/android/`). Это WebView, который открывает тот же сайт с GitHub Pages, поэтому обновления приложения прилетают без переустановки APK. Камера для фото коробок работает через системный выбор файла.
+
+Установить: скачать `aptechka-debug.apk` из [Releases](https://github.com/shffhm-debug/aptechka/releases/latest) на телефон, открыть файл, разрешить установку из этого источника. При первом запуске адрес скрипта уже подставлен, нужно ввести только семейный токен и нажать «Сохранить».
+
+Пересобрать APK (нужны Android Studio с SDK и её JDK):
+
+```bash
+cd web
+npm run build && npx cap sync android
+cd android && JAVA_HOME="C:/Program Files/Android/Android Studio/jbr" ./gradlew assembleDebug
+# результат: android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+Иконки и заставка генерируются из `web/assets/` командой `npx capacitor-assets generate --android`. Для Play Market нужна подписанная release-сборка (`assembleRelease` с keystore) и аккаунт разработчика.
+
 ---
 
 ## 3. Как это устроено
