@@ -71,7 +71,8 @@ export function StoreProvider({ children }) {
     dispatch({ type: 'sync:start' })
     try {
       const data = await api('list')
-      dispatch({ type: 'sync:ok', items: data.items || [], at: new Date().toISOString() })
+      if (!Array.isArray(data?.items)) throw new ApiError('bad_shape')
+      dispatch({ type: 'sync:ok', items: data.items, at: new Date().toISOString() })
       return true
     } catch (err) {
       dispatch({ type: 'sync:fail', error: humanError(err) })

@@ -23,8 +23,11 @@ function doPost(e) {
   return jsonOut(handleRequest(req));
 }
 
-function doGet() {
-  return jsonOut({ ok: true, data: { app: 'aptechka', version: 1 } });
+// GET — только проверка «жив ли скрипт» с ?ping=1. Обычный GET отвечает ошибкой:
+// иначе POST, превращённый редиректом в GET, выглядел бы для клиента как пустой успех.
+function doGet(e) {
+  if (e && e.parameter && e.parameter.ping) return jsonOut({ ok: true, data: { app: 'aptechka', version: 2 } });
+  return jsonOut({ ok: false, error: 'method_get' });
 }
 
 function jsonOut(obj) {

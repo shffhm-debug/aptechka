@@ -17,6 +17,8 @@ const MESSAGES = {
   unknown_action: 'Сервер не понял запрос. Обнови приложение.',
   bad_json: 'Сервер не понял запрос.',
   bad_response: 'Сервер вернул не JSON. Проверь адрес скрипта (должен заканчиваться на /exec) и что доступ «Все».',
+  bad_shape: 'Сервер ответил невпопад. Попробуй ещё раз.',
+  method_get: 'Сервер ответил невпопад. Попробуй ещё раз.',
   name_required: 'Укажи название.',
   id_required: 'Не хватает id позиции.',
   not_found: 'Позиция уже удалена или не найдена.',
@@ -51,16 +53,38 @@ export function isConfigured(settings) {
   return Boolean(settings?.demo || (settings?.url && settings?.token))
 }
 
-export async function request(settings, action, payload = {}) {
-  if (settings?.demo) return demo.handle(action, payload)
-  if (!settings?.url) throw new ApiError('no_url')
+/**
+ * Apps Script отвечает через 302 → googleusercontent. Иногда цепочка редиректов ломается:
+ * POST превращается в GET (приходит ответ doGet без данных), либо echo отдаёт 404 HTML.
+ * Поэтому: проверяем форму ответа под конкретный action и повторяем запрос до 3 раз.
+ */
+const RETRYABLE = new Set(['bad_response', 'bad_shape', 'method_get', 'network'])
+const RETRY_DELAYS = [400, 1000, 2200]
 
-  const res = await fetch(settings.url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ token: settings.token || '', action, payload }),
-    redirect: 'follow',
-  })
+function checkShape(action, data) {
+  const isObj = data && typeof data === 'object' && !Array.isArray(data)
+  switch (action) {
+    case 'list': return isObj && Array.isArray(data.items)
+    case 'add':
+    case 'update': return isObj && typeof data.id === 'string' && data.id.length > 0
+    case 'delete': return isObj && data.id != null
+    case 'ai': return isObj
+    default: return true
+  }
+}
+
+async function once(settings, action, payload) {
+  let res
+  try {
+    res = await fetch(settings.url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ token: settings.token || '', action, payload }),
+      redirect: 'follow',
+    })
+  } catch (e) {
+    throw new ApiError('network', e?.message)
+  }
   let data
   try {
     data = await res.json()
@@ -68,5 +92,26 @@ export async function request(settings, action, payload = {}) {
     throw new ApiError('bad_response')
   }
   if (!data || data.ok !== true) throw new ApiError(data?.error || 'unknown')
+  if (!checkShape(action, data.data)) throw new ApiError('bad_shape')
   return data.data
+}
+
+export async function request(settings, action, payload = {}) {
+  if (settings?.demo) return demo.handle(action, payload)
+  if (!settings?.url) throw new ApiError('no_url')
+
+  let lastErr
+  for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt++) {
+    try {
+      return await once(settings, action, payload)
+    } catch (err) {
+      lastErr = err
+      const code = err instanceof ApiError ? err.code.split(':')[0] : 'network'
+      // повторять только транспортные сбои; чтение (list/ai) — всегда, запись — тоже безопасно:
+      // add с тем же id не дублирует, update идемпотентен, delete отвечает not_found
+      if (!RETRYABLE.has(code) || attempt === RETRY_DELAYS.length) break
+      await new Promise((r) => setTimeout(r, RETRY_DELAYS[attempt]))
+    }
+  }
+  throw lastErr
 }
