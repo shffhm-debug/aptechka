@@ -15,10 +15,19 @@ export default function Settings() {
   const [testResult, setTestResult] = useState(null)
 
   // ссылка «поделиться настройками» со второго телефона: #/settings?url=...&token=...
+  // (той же ссылкой стартует Android-оболочка: если всё уже сохранено — сразу на главный)
   useEffect(() => {
     const u = params.get('url'); const t = params.get('token')
+    if (!u && !t) return
+    const sameUrl = !u || u === settings.url
+    const sameToken = !t || t === settings.token
+    if (settings.url && settings.token && !settings.demo && sameUrl && sameToken) {
+      navigate('/', { replace: true })
+      return
+    }
     if (u) setUrl(u)
     if (t) setToken(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params])
 
   const dirty = url !== settings.url || token !== settings.token
